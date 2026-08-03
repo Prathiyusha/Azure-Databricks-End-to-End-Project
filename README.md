@@ -4,7 +4,7 @@
 
 This project demonstrates an end-to-end Data Engineering pipeline on Azure Databricks using the Medallion Architecture (Bronze, Silver, and Gold). Customer, Orders, and Product source data stored in Azure Data Lake Storage Gen2 (ADLS Gen2) is ingested incrementally using Databricks Auto Loader and Spark Structured Streaming, then transformed through multiple layers using PySpark.
 
-The Silver layer performs data cleansing and business transformations using PySpark, and includes a Python OOP class built to apply window-function-based ranking logic as a learning exercise. In the Gold layer, the Customer Dimension is built using **SCD Type 1** with PySpark and Delta Lake merge (upsert) operations, including surrogate key generation. The Product Dimension is built using **SCD Type 2** with Delta Live Tables (DLT), including data quality expectations. An Orders Fact table joins both dimensions to complete a Star Schema. A Databricks Workflow was built to orchestrate the notebooks end-to-end, including a parameterized for-each task for Bronze ingestion.
+The Silver layer performs data cleansing and business transformations using PySpark and includes a Python OOP class for practising window-function-based ranking logic. In the Gold layer, Customer Dimension upsert logic is implemented using PySpark and Delta Lake MERGE, with surrogate key generation. The Product Dimension is configured using Delta Live Tables (DLT) with SCD Type 2 change-processing logic and data quality expectations. An Orders Fact table joins Customer and Product dimension data to demonstrate a basic Star Schema. A Databricks Workflow was built to orchestrate the main Customer, Orders, and Product pipeline, including a parameterized for-each task for Bronze ingestion.
 
 ---
 
@@ -19,9 +19,9 @@ The Silver layer performs data cleansing and business transformations using PySp
 | Spark Structured Streaming | Enables incremental file ingestion through Databricks Auto Loader. |
 | Databricks Auto Loader | Automatically ingests new Parquet files into the Bronze layer. |
 | Delta Lake (MERGE) | Implements SCD Type 1 upserts for the Customer Dimension. |
-| Delta Live Tables (DLT) | Implements SCD Type 2 for the Product Dimension. |
+| Delta Live Tables (DLT) | Configures SCD Type 2 change-processing logic for the Product Dimension. |
 | Unity Catalog | Governs Bronze/Silver/Gold tables through a catalog.schema.table namespace. |
-| Databricks Workflows | Job built to orchestrate notebook execution via task dependencies and a for-each loop. |
+| Databricks Workflows | Job built to orchestrate the main Customer, Orders, and Product pipeline using task dependencies and a for-each loop. |
 
 ---
 
@@ -41,7 +41,7 @@ The Silver layer performs data cleansing and business transformations using PySp
   <img src="images/end_to_end_pipeline.png" alt="Databricks Workflow Task Graph" width="1000"/>
 </p>
 
-<p align="center"><em>Databricks Workflow (Job) showing task dependencies across the Bronze, Silver, and Gold notebooks, including a parameterized for-each loop for Bronze ingestion.</em></p>
+<p align="center"><em>Databricks Workflow (Job) showing task dependencies across the main Customer, Orders, and Product pipeline, including a parameterized for-each loop for Bronze ingestion.</em></p>
 
 ---
 
@@ -88,16 +88,16 @@ The Silver layer performs data cleansing and business transformations using PySp
 ### Silver Layer
 - Performed data cleansing and business transformations using PySpark.
 - Applied data type conversions and derived business columns.
-- Registered custom Unity Catalog SQL and Python functions (`discount_func`, `upper_func`) and applied them in PySpark transformations on the Products dataset.
+- Registered custom Unity Catalog SQL and Python functions (`discount_func`, `upper_func`). The discount function was applied in the Products PySpark transformation, while the uppercase function was demonstrated through a SQL query.
 - Practiced PySpark window functions (dense_rank, rank, row_number) using a Python OOP class in the Orders notebook, as a ranking-logic exercise — this output is not part of the final persisted Silver or Gold tables.
 - Stored transformed data as Delta tables.
 - The Regions dataset is also ingested and prepared as a Silver reference table but is not currently used in the Gold Star Schema.
 
 ### Gold Layer
-- Implemented **SCD Type 1** for the Customer Dimension using PySpark and Delta Lake merge (upsert) operations, generating incremental surrogate keys.
-- Created the Orders Fact table by joining the Customer and Product dimensions.
-- Used Delta Live Tables (DLT) to implement **SCD Type 2** for the Product Dimension, with data quality expectations on product_id and product_name.
-- Built a Star Schema for analytics.
+- Implemented Customer Dimension upsert logic using PySpark and Delta Lake MERGE, with surrogate key generation.
+- Configured Delta Live Tables with SCD Type 2 change-processing logic and data quality expectations for the Product Dimension.
+- Created an Orders Fact table by joining Customer and Product dimension data.
+- Demonstrated a basic Star Schema consisting of Customer and Product dimensions with an Orders Fact table.
 
 ---
 
